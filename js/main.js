@@ -3,7 +3,7 @@ const ctx = canvas.getContext("2d");
 
 let array = [];
 const barWidth = 10;
-let selectedAlgorithm = "kmp"; // default
+let selectedAlgorithm = "dijk"; // default
 
 function selectAlgorithm(name, element) {
   selectedAlgorithm = name;
@@ -357,7 +357,6 @@ function drawTextandPattern(text, pattern, textIndex, patternIndex, matchedSet =
   }
 }
 
-
 async function animateKMP(text, pattern) {
   const lps = kmp(pattern);
   let i = 0, j = 0;
@@ -389,6 +388,106 @@ async function animateKMP(text, pattern) {
   drawTextandPattern(text, pattern, -1, -1, matchedSet);
 }
 
+const nodes = [
+  { id: 1, x: 300, y: 100 },
+  { id: 2, x: 500, y: 100 },
+  { id: 3, x: 600, y: 250 },
+  { id: 4, x: 200, y: 250 },
+  { id: 5, x: 300, y: 400 },
+  { id: 6, x: 500, y: 400}
+];
+
+const edges = [
+  { from: 1, to: 2, val: 2},
+  { from: 1, to: 4, val: 1},
+  { from: 2, to: 4, val: 2},
+  { from: 2, to: 3, val: 3},
+  { from: 3, to: 5, val: 1},
+  { from: 3, to: 6, val: 5},
+  { from: 3, to: 4, val: 3},
+  { from: 4, to: 5, val: 1},
+  { from: 5, to: 6, val: 2},
+  { from: 1, to: 3, val: 5}
+];
+
+function drawGraph() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  edges.forEach(edge => {
+    const from = nodes.find(n => n.id === edge.from);
+    const to = nodes.find(n => n.id === edge.to);
+    const val = nodes.find(n => n.id === edge.val);
+
+    ctx.beginPath();
+    ctx.moveTo(from.x, from.y);
+    ctx.lineTo(to.x, to.y);
+    ctx.strokeStyle = 'gray';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  });
+
+  nodes.forEach(node => {
+    ctx.beginPath();
+    ctx.arc(node.x, node.y, 20, 0, 2 * Math.PI);
+    ctx.fillStyle = 'steelblue';
+    ctx.fill();
+    ctx.strokeStyle = 'black';
+    ctx.stroke();
+
+    ctx.fillStyle = 'white';
+    ctx.font = '16px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(node.id, node.x, node.y);
+  });
+
+  const adjacencyList = {};
+  nodes.forEach(node => adjacencyList[node.id] = []);
+  edges.forEach(edge => {
+    adjacencyList[edge.from].push(edge.to);
+    adjacencyList[edge.to].push(edge.from);
+  });
+}
+
+async function animateVisited(order) {
+  drawGraph();
+  for (let i = 0; i < order.length; i++) {
+    const node = nodes.find(n => n.id === order[i]);
+
+    ctx.beginPath();
+    ctx.arc(node.x, node.y, 20, 0, 2 * Math.PI);
+    ctx.fillStyle = 'orange';
+    ctx.fill();
+    ctx.strokeStyle = 'black';
+    ctx.stroke();
+
+    ctx.fillStyle = 'white';
+    ctx.font = '16px Airal';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(node.id, node.x, node.y);
+
+    await sleep(500);
+  }
+}
+
+async function dijk(startId = 1) {
+  const visited = new Set();
+  const queue = [startId];
+  const order = [];
+  visited.add(startId);
+
+  while(queue.length > 0) {
+    const current = queue.shift();
+    order.push(current);
+    for (let neighbor of adjacencyList) {
+      if(!visited.has(neighbor)) {
+        visited.add(neighbor);
+        queue.push(neighbor);
+      }
+    }
+  }
+  await animateVisited(order);
+}
 
 function start() {
   if (selectedAlgorithm === "bubble") {
@@ -418,5 +517,7 @@ function start() {
     bins();
   } else if (selectedAlgorithm === "kmp") {
     animateKMP(text, pattern);
+  } else if (selectedAlgorithm === "dijk") {
+
   }
 }
