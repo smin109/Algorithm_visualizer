@@ -330,7 +330,7 @@ function kmp(pattern) {
   return lps;
 }
 
-function drawTextandPattern(text, pattern, textIndex, patternIndex) {
+function drawTextandPattern(text, pattern, textIndex, patternIndex, matchedSet = new Set()) {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   ctx.font = "20px Arial";
@@ -338,34 +338,47 @@ function drawTextandPattern(text, pattern, textIndex, patternIndex) {
   ctx.textBaseline = "middle";
 
   for (let i = 0; i < text.length; i++) {
-    ctx.fillStyle = (i === textIndex) ? "orange" : "black";
-    ctx.fillText(text[i], 50 + i * 40, 240, 40, 40);
-    ctx.strokeRect(30 + i * 40 , 220, 40, 40);
+    if (i === textIndex) {
+      ctx.fillStyle = "gray";
+    } else if (matchedSet.has(i)) {
+      ctx.fillStyle = "red";
+    } else {
+      ctx.fillStyle = "black";
+    }
+    ctx.fillText(text[i], 50 + i * 40, 200);
+    ctx.strokeRect(30 + i * 40, 180, 40, 40);
   }
 
   for (let i = 0; i < pattern.length; i++) {
+    const x = 50 + (textIndex - patternIndex + i) * 40;
     ctx.fillStyle = (i === patternIndex) ? "blue" : "black";
-    ctx.fillText(pattern[i], 50 + (textIndex - patternIndex + i) * 40, 290);
-    ctx.strokeRect(30 + (textIndex - patternIndex + i) * 40 , 270, 40, 40);
+    ctx.fillText(pattern[i], x, 270);
+    ctx.strokeRect(x - 20, 250, 40, 40);
   }
 }
 
+
 async function animateKMP(text, pattern) {
-  lps = kmp(pattern);
+  const lps = kmp(pattern);
   let i = 0, j = 0;
+  const matchedSet = new Set();
 
   while (i < text.length) {
-    drawTextandPattern(text, pattern, i, j);
+    drawTextandPattern(text, pattern, i, j, matchedSet);
     await sleep(1000);
 
-    if(text[i] === pattern[j]) {
-      i++; j++;
-      if(j === pattern.length) {
-        console.log(i - j);
+    if (text[i] === pattern[j]) {
+      i++;
+      j++;
+      if (j === pattern.length) {
+        // 패턴 매칭된 위치 하이라이팅
+        for (let k = i - j; k < i; k++) {
+          matchedSet.add(k);
+        }
         j = lps[j - 1];
       }
     } else {
-      if(j !== 0) {
+      if (j !== 0) {
         j = lps[j - 1];
       } else {
         i++;
@@ -373,8 +386,9 @@ async function animateKMP(text, pattern) {
     }
   }
 
-  drawTextandPattern(text, pattern, -1, -1);
+  drawTextandPattern(text, pattern, -1, -1, matchedSet);
 }
+
 
 function start() {
   if (selectedAlgorithm === "bubble") {
