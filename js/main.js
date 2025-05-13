@@ -307,7 +307,7 @@ async function drawChart({ left = -1, mid = -1, right = -1 } = {}) {
   });
 }
 
-const text = "ababcababcabc";
+const text = "abaacababcabc";
 const pattern = "ababc";
 
 let lps = [];
