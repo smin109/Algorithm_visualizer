@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Algorithm Visualizer</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" charset="utf-8"></script>
+</head>
+
+<body>
+  <div class="header">
+    <h1>Algorithm Visualizer</h1>
+  </div>
+
+  <div class="container">
+    <div class="sidebar">
+      <div class="menu">  
+        <div class="item"><a href="#" onclick="selectAlgorithm('bubble', this)"><i class="bubble"></i>Bubble Sort</a></div>
+        <div class="item"><a href="#" onclick="selectAlgorithm('merge', this)"><i class="merge"></i>Merge Sort</a></div>
+        <div class="item"><a href="#" onclick="selectAlgorithm('quick', this)"><i class="quick"></i>Quick Sort</a></div>
+        <div class="item"><a href="#" onclick="selectAlgorithm('selection', this)"><i class="selection"></i>Selection Sort</a></div>
+        <div class="item"><a href="#" onclick="selectAlgorithm('bfs', this)"><i class="bfs"></i>Breadth-Frist Search</a></div>
+        <div class="item"><a href="#" onclick="selectAlgorithm('dfs', this)"><i class="dfs"></i>Depth-First Search</a></div>
+        <div class="item"><a href="#" onclick="selectAlgorithm('bins', this)"><i class="bins"></i>Binary Search</a></div>
+      </div>
+    </div>
+    <div class="main">
+      <div class="canvas-wrapper">  
+        <canvas id="canvas" width="800" height="550"></canvas>
+        <br />
+        <button class = "button-85" role="button" onclick="start()">Start</button>
+      </div>
+    </div>
+  </div>
+  <script src="js/main.js"></script>
+</body>
+</html>
+
