@@ -1,5 +1,3 @@
-const { partialRight } = require("lodash");
-
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 
@@ -316,7 +314,7 @@ let lps = [];
 let curIndex = 0;
 let patIndex = 0;
 
-function kmp() {
+function kmp(pattern) {
   const lps = Array(pattern.length).fill(0);
   let len = 0;
 
@@ -335,15 +333,20 @@ function kmp() {
 function drawTextandPattern(text, pattern, textIndex, patternIndex) {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+  ctx.font = "20px Arial";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+
   for (let i = 0; i < text.length; i++) {
     ctx.fillStyle = (i === textIndex) ? "orange" : "black";
     ctx.fillText(text[i], 50 + i * 40, 240, 40, 40);
+    ctx.strokeRect(30 + i * 40 , 220, 40, 40);
   }
 
   for (let i = 0; i < pattern.length; i++) {
     ctx.fillStyle = (i === patternIndex) ? "blue" : "black";
-    ctx.fillText(pattern[i], 50 + (textIndex - patternIndex + i) * 40, 250);
-    ctx.strokeRect(45 + (textIndex - patternIndex + i) * 40 , 240, 40, 40);
+    ctx.fillText(pattern[i], 50 + (textIndex - patternIndex + i) * 40, 290);
+    ctx.strokeRect(30 + (textIndex - patternIndex + i) * 40 , 270, 40, 40);
   }
 }
 
@@ -353,7 +356,7 @@ async function animateKMP(text, pattern) {
 
   while (i < text.length) {
     drawTextandPattern(text, pattern, i, j);
-    await new Promise(res => setTimeout(res, delay));
+    await sleep(1000);
 
     if(text[i] === pattern[j]) {
       i++; j++;
