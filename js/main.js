@@ -1,9 +1,11 @@
+const { partialRight } = require("lodash");
+
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 
 let array = [];
 const barWidth = 10;
-let selectedAlgorithm = "bins"; // default
+let selectedAlgorithm = "kmp"; // default
 
 function selectAlgorithm(name, element) {
   selectedAlgorithm = name;
@@ -307,6 +309,70 @@ async function drawChart({ left = -1, mid = -1, right = -1 } = {}) {
   });
 }
 
+const text = "ababcababcabc";
+const pattern = "ababc";
+
+let lps = [];
+let curIndex = 0;
+let patIndex = 0;
+
+function kmp() {
+  const lps = Array(pattern.length).fill(0);
+  let len = 0;
+
+  for(let i = 1; i < pattern.length; i++){
+    while(len > 0 && pattern[i] !== pattern[len]) {
+      len = lps[len - 1];
+    }
+    if (pattern[i] === pattern[len]) {
+      len++;
+      lps[i] = len;
+    }
+  }
+  return lps;
+}
+
+function drawTextandPattern(text, pattern, textIndex, patternIndex) {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  for (let i = 0; i < text.length; i++) {
+    ctx.fillStyle = (i === textIndex) ? "orange" : "black";
+    ctx.fillText(text[i], 50 + i * 40, 240, 40, 40);
+  }
+
+  for (let i = 0; i < pattern.length; i++) {
+    ctx.fillStyle = (i === patternIndex) ? "blue" : "black";
+    ctx.fillText(pattern[i], 50 + (textIndex - patternIndex + i) * 40, 250);
+    ctx.strokeRect(45 + (textIndex - patternIndex + i) * 40 , 240, 40, 40);
+  }
+}
+
+async function animateKMP(text, pattern) {
+  lps = kmp(pattern);
+  let i = 0, j = 0;
+
+  while (i < text.length) {
+    drawTextandPattern(text, pattern, i, j);
+    await new Promise(res => setTimeout(res, delay));
+
+    if(text[i] === pattern[j]) {
+      i++; j++;
+      if(j === pattern.length) {
+        console.log(i - j);
+        j = lps[j - 1];
+      }
+    } else {
+      if(j !== 0) {
+        j = lps[j - 1];
+      } else {
+        i++;
+      }
+    }
+  }
+
+  drawTextandPattern(text, pattern, -1, -1);
+}
+
 function start() {
   if (selectedAlgorithm === "bubble") {
     generateArray();
@@ -333,5 +399,7 @@ function start() {
   } else if (selectedAlgorithm === "bins") {
     drawChart();
     bins();
+  } else if (selectedAlgorithm === "kmp") {
+    animateKMP(text, pattern);
   }
 }
