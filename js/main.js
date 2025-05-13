@@ -410,13 +410,19 @@ const edges = [
   { from: 1, to: 3, val: 5}
 ];
 
+const adjacencyList2 = {};
+nodes.forEach(node => adjacencyList2[node.id] = []);
+edges.forEach(edge => {
+  adjacencyList2[edge.from].push({to: edge.to, val: edge.val});
+  adjacencyList2[edge.to].push({to: edge.from, val: edge.val});
+});
+
 function drawGraph() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   edges.forEach(edge => {
     const from = nodes.find(n => n.id === edge.from);
     const to = nodes.find(n => n.id === edge.to);
-    const val = nodes.find(n => n.id === edge.val);
 
     ctx.beginPath();
     ctx.moveTo(from.x, from.y);
@@ -424,6 +430,12 @@ function drawGraph() {
     ctx.strokeStyle = 'gray';
     ctx.lineWidth = 2;
     ctx.stroke();
+
+    const midx = (from.x + to.x) / 2;
+    const midy = (from.y + to.y) / 2;
+    ctx.fillStyle = 'black';
+    ctx.font = '14px Arial';
+    ctx.fillText(edge.val, midx, midy);
   });
 
   nodes.forEach(node => {
@@ -440,12 +452,6 @@ function drawGraph() {
     ctx.fillText(node.id, node.x, node.y);
   });
 
-  const adjacencyList = {};
-  nodes.forEach(node => adjacencyList[node.id] = []);
-  edges.forEach(edge => {
-    adjacencyList[edge.from].push(edge.to);
-    adjacencyList[edge.to].push(edge.from);
-  });
 }
 
 async function animateVisited(order) {
@@ -461,7 +467,7 @@ async function animateVisited(order) {
     ctx.stroke();
 
     ctx.fillStyle = 'white';
-    ctx.font = '16px Airal';
+    ctx.font = '16px Arial';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(node.id, node.x, node.y);
@@ -471,21 +477,40 @@ async function animateVisited(order) {
 }
 
 async function dijk(startId = 1) {
+  const dist = {};
   const visited = new Set();
-  const queue = [startId];
   const order = [];
-  visited.add(startId);
 
-  while(queue.length > 0) {
-    const current = queue.shift();
-    order.push(current);
-    for (let neighbor of adjacencyList) {
-      if(!visited.has(neighbor)) {
-        visited.add(neighbor);
-        queue.push(neighbor);
+  nodes.forEach(node => dist[node.id] = Infinity);
+  dist[startId] = 0;
+
+  while (visited.size < nodes.length) {
+    console.log(order);
+    let minNOde = null;
+    let minDist = Infinity;
+
+    for (let nodeId in dist) { 
+      if (!visited.has(+nodeId) && dist[nodeId] < minDist){
+        minDist = dist[nodeId];
+        minNOde = +nodeId;
+      }
+    }
+
+    if (minNOde === null) break;
+
+    visited.add(minNOde);
+    order.push(minNOde);
+
+    for (let neighbor of adjacencyList2[minNOde]) {
+      if (!visited.has(neighbor.to)) {
+        const newDist = dist[minNOde] + neighbor.val;
+        if (newDist < dist[neighbor.to]) {
+          dist[neighbor.to] = newDist;
+        }
       }
     }
   }
+  
   await animateVisited(order);
 }
 
@@ -518,6 +543,7 @@ function start() {
   } else if (selectedAlgorithm === "kmp") {
     animateKMP(text, pattern);
   } else if (selectedAlgorithm === "dijk") {
-
+    drawGraph();
+    dijk(1);
   }
 }
