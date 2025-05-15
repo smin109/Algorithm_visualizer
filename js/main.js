@@ -455,7 +455,7 @@ function drawGraph() {
 }
 
 async function animateVisited(order) {
-  drawGraph();
+  drawGraph();  // 한 번만 그리기
   for (let i = 0; i < order.length; i++) {
     const node = nodes.find(n => n.id === order[i]);
 
@@ -476,42 +476,101 @@ async function animateVisited(order) {
   }
 }
 
+// 최단 경로를 따라 선을 그리고 비용을 출력하는 함수
+async function animateAllShortestPaths(startId, dist, parent) {
+  const startNode = nodes.find(n => n.id === startId);
+
+  for (const node of nodes) {
+    if (node.id === startId) continue; // 시작 노드 제외
+
+    drawGraph();
+
+    // 시작 노드 오렌지 표시
+    ctx.beginPath();
+    ctx.arc(startNode.x, startNode.y, 20, 0, 2 * Math.PI);
+    ctx.fillStyle = 'orange';
+    ctx.fill();
+    ctx.strokeStyle = 'black';
+    ctx.stroke();
+
+    // 현재 목적지 노드 오렌지 표시
+    ctx.beginPath();
+    ctx.arc(node.x, node.y, 20, 0, 2 * Math.PI);
+    ctx.fillStyle = 'orange';
+    ctx.fill();
+    ctx.strokeStyle = 'black';
+    ctx.stroke();
+
+    // 최단 경로 빨간선 그리기
+    ctx.strokeStyle = 'red';
+    ctx.lineWidth = 4;
+    ctx.beginPath(); // 한 번만
+    let current = node.id;
+    while (parent[current] !== null) {
+      const fromNode = nodes.find(n => n.id === parent[current]);
+      const toNode = nodes.find(n => n.id === current);
+      if (!fromNode || !toNode) break;
+
+      ctx.moveTo(fromNode.x, fromNode.y);
+      ctx.lineTo(toNode.x, toNode.y);
+
+      current = parent[current];
+    }
+    ctx.stroke(); // 마지막에 한 번만
+
+    // 비용 텍스트 출력 (노드 오른쪽에)
+    ctx.fillStyle = 'black';
+    ctx.font = '14px Arial';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(`Cost: ${dist[node.id]}`, node.x - 25, node.y + 30);
+
+    await sleep(1000);
+  }
+}
+
 async function dijk(startId = 1) {
   const dist = {};
   const visited = new Set();
   const order = [];
+  const parent = {};
 
-  nodes.forEach(node => dist[node.id] = Infinity);
+  nodes.forEach(node => {
+    dist[node.id] = Infinity;
+    parent[node.id] = null;
+  });
   dist[startId] = 0;
 
   while (visited.size < nodes.length) {
-    console.log(order);
-    let minNOde = null;
+    let minNode = null;
     let minDist = Infinity;
 
-    for (let nodeId in dist) { 
-      if (!visited.has(+nodeId) && dist[nodeId] < minDist){
+    for (let nodeId in dist) {
+      if (!visited.has(+nodeId) && dist[nodeId] < minDist) {
         minDist = dist[nodeId];
-        minNOde = +nodeId;
+        minNode = +nodeId;
       }
     }
 
-    if (minNOde === null) break;
+    if (minNode === null) break;
 
-    visited.add(minNOde);
-    order.push(minNOde);
+    visited.add(minNode);
+    order.push(minNode);
 
-    for (let neighbor of adjacencyList2[minNOde]) {
+    for (let neighbor of adjacencyList2[minNode]) {
       if (!visited.has(neighbor.to)) {
-        const newDist = dist[minNOde] + neighbor.val;
+        const newDist = dist[minNode] + neighbor.val;
         if (newDist < dist[neighbor.to]) {
           dist[neighbor.to] = newDist;
+          parent[neighbor.to] = minNode;
         }
       }
     }
   }
-  
+
+  drawGraph();
   await animateVisited(order);
+  await animateAllShortestPaths(startId, dist, parent);
 }
 
 function start() {
