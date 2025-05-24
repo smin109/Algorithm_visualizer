@@ -2,8 +2,15 @@ const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 
 let array = [];
+let isPaused = false;
 const barWidth = 10;
 let selectedAlgorithm = "dijk"; // default
+
+async function checkPaused() {
+  while (isPaused) {
+    await new Promise(resolve => setTimeout(resolve, 50)); // 50ms 간격으로 상태 확인
+  }
+}
 
 function selectAlgorithm(name, element) {
   selectedAlgorithm = name;
@@ -108,6 +115,7 @@ edgeTs.forEach(edgeT => {
 async function animateVisit(order) {
   drawTree(); // 전체 초기화
   for (let i = 0; i < order.length; i++) {
+    await checkPaused();
     const nodeT = nodeTs.find(n => n.id === order[i]);
 
     ctx.beginPath();
@@ -134,6 +142,7 @@ function sleep(ms) {
 async function bubbleSort() {
   for (let i = 0; i < array.length; i++) {
     for (let j = 0; j < array.length - i - 1; j++) {
+      await checkPaused();
       drawArray([j, j + 1]);
       await sleep(30);
       if (array[j] > array[j + 1]) {
@@ -150,6 +159,7 @@ async function selectionSort() {
   for (let i = 0; i < array.length; i++) {
     let minIdx = i;
     for (let j = i + 1; j < array.length; j++) {
+      await checkPaused();
       drawArray([i, j, minIdx]);
       await sleep(30);
       if (array[j] < array[minIdx]) {
@@ -168,6 +178,7 @@ async function selectionSort() {
 async function quickSort(start = 0, end = array.length - 1) {
   if (start >= end) return;
   let index = await partition(start, end);
+  await checkPaused();
   await Promise.all([
     quickSort(start, index - 1),
     quickSort(index + 1, end),
@@ -178,6 +189,7 @@ async function partition(start, end) {
   let pivot = array[end];
   let pivotIndex = start;
   for (let i = start; i < end; i++) {
+    await checkPaused();
     drawArray([i, pivotIndex, end]);
     await sleep(30);
     if (array[i] < pivot) {
@@ -207,6 +219,7 @@ async function merge(start, mid, end) {
   let i = 0, j = 0, k = start;
 
   while (i < left.length && j < right.length) {
+    await checkPaused();
     drawArray([k]);
     await sleep(30);
     if (left[i] <= right[j]) {
@@ -243,6 +256,7 @@ async function bfs(startId = 1) {
       }
     }
   }
+  await checkPaused();
   await animateVisit(order);
 }
 
@@ -261,6 +275,7 @@ async function dfs(startId = 1) {
   }
 
   dfsVisit(startId);
+  await checkPaused();
   await animateVisit(order);
 }
 
@@ -274,6 +289,7 @@ async function bins() {
   while(left <= right){
     await sleep(500);
     let mid = Math.floor((left + right) / 2);
+    await checkPaused();
     drawChart({left, mid, right});
     if(binsList[mid] < toSearch) left = mid + 1;
     else if(binsList[mid] > toSearch) right = mid - 1;
@@ -363,6 +379,7 @@ async function animateKMP(text, pattern) {
   const matchedSet = new Set();
 
   while (i < text.length) {
+    await checkPaused();
     drawTextandPattern(text, pattern, i, j, matchedSet);
     await sleep(1000);
 
@@ -482,7 +499,7 @@ async function animateAllShortestPaths(startId, dist, parent) {
 
   for (const node of nodes) {
     if (node.id === startId) continue; // 시작 노드 제외
-
+    await checkPaused();
     drawGraph();
 
     // 시작 노드 오렌지 표시
@@ -572,6 +589,12 @@ async function dijk(startId = 1) {
   await animateVisited(order);
   await animateAllShortestPaths(startId, dist, parent);
 }
+
+function pause() {
+  isPaused = !isPaused;
+  document.getElementById('pausebtn').innerText = isPaused ? "Resume" : "Pause";
+}
+
 
 function start() {
   if (selectedAlgorithm === "bubble") {
